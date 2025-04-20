@@ -9,4 +9,5 @@ func SetupWebRoutes(router *mux.Router) {
 
 	router.HandleFunc("/", web.Register)
 	router.HandleFunc("/login", web.Login)
+	router.HandleFunc("/home", web.Home)
 }

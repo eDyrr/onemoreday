@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sign Up | Your App</title>
   <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js"></script>
   <style>
     :root {
       --primary: #4361ee;
@@ -126,7 +127,7 @@
 <body>
   <div class="auth-container">
     <h1>Create Account</h1>
-    <form id="signupForm">
+    <form id="signupForm" hx-post="/api/register" hx-ext="json-enc">
       <div class="form-group">
         <label for="name">Full Name</label>
         <input type="text" id="name" name="name" placeholder="e.g. John Doe" required />
@@ -147,7 +148,7 @@
         <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Repeat password" required />
         <div class="error" id="confirmError"></div>
       </div>
-      <button type="submit">Sign Up</button>
+      <button type="submit" hx-indicator=".loading-indicator">Sign Up</button>
     </form>
     <div class="switch-form">
       Already have an account?

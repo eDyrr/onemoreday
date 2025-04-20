@@ -42,13 +42,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Password: hashedPassword,
 	}
 
-	// dbPath := os.Getenv("DB_PATH")
-	// if dbPath == "" {
-	// 	log.Println("DB_PATH environment variable not set")
-	// 	http.Error(w, "Internal server error", http.StatusInternalServerError)
-	// 	return
-	// }
-
 	DB, err := sql.Open("sqlite", "/var/home/ed/Projects/onemoreday/pkg/database/testDB.db")
 	if err != nil {
 		log.Printf("Database connection failed: %v", err)
@@ -79,11 +72,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("HX-Redirect", "/home")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "User registered successfully",
-	})
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -156,8 +146,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode, // Recommended for CSRF protection
 	})
 
+	// w.WriteHeader(http.StatusOK)
+	// json.NewEncoder(w).Encode(map[string]string{
+	// 	"message": "Login successful",
+	// })
+
+	w.Header().Set("HX-Redirect", "/home")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Login successful",
-	})
 }
