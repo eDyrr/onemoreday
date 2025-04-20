@@ -24,7 +24,7 @@
         }
         #goalsContainer {
             overflow-y: auto;
-            max-height: calc(100vh - 100ox);
+            max-height: calc(100vh - 100px); /* Fixed typo: changed 'ox' to 'px' */
             padding-right: 10px;
             margin-top: 10px;
         }
@@ -50,6 +50,8 @@
         button:hover {
             background: #0069d9;
         }
+        
+        /* Enhanced Goal Container Styles */
         .goal-container {
             background: #f8f9fa;
             border-radius: 8px;
@@ -58,24 +60,58 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             width: calc(100% - 15px);
             box-sizing: border-box;
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            gap: 10px;
-            align-items: center;
+            position: relative; /* For progress fill positioning */
+            overflow: hidden; /* Contain the progress fill */
         }
         .goal-container:hover {
             background-color: rgba(0, 0, 0, 0.05);
         }
+        
+        /* Progress Bar Styles */
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, rgba(40, 167, 69, 0.2), rgba(40, 167, 69, 0.4));
+            z-index: 0;
+            transition: width 0.3s ease;
+        }
+        .progress-fill[style*="100%"] {
+            background-color: rgba(40, 167, 69, 0.8);
+        }
+        
+        /* Goal Content Styles */
+        .goal-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+        }
         .goal-text {
             font-size: 1.1em;
-            margin-bottom: 5px;
+            margin-bottom: 0; /* Adjusted from 5px */
+            flex-grow: 1;
         }
-        .goal-date {
-            color: #6c757d;
-            font-size: 0.9em;
-            font-style: italic;
+        
+        /* Animation Styles */
+        @keyframes glow {
+            0% { box-shadow: 0 0 0 rgba(40, 167, 69, 0); }
+            50% { box-shadow: 0 0 10px rgba(40, 167, 69, 0.5); }
+            100% { box-shadow: 0 0 0 rgba(40, 167, 69, 0); }
         }
+        .glow-effect {
+            animation: glow 0.5s ease-out;
+        }
+        .completed {
+            border-left: 4px solid #28a745;
+        }
+        
+        /* Right side and other existing styles */
         .right-half {
             position: absolute;
             right: 0;
@@ -86,8 +122,16 @@
             width: 50%;
             flex-direction: column;
         }
-        h1 {
-            width: max-content;
+        .video-container {
+            position: relative;
+            top: 10px;
+            right: 0px;
+        }
+        .logout-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: #6c757d;
         }
         .audio-control {
             position: absolute;
@@ -98,24 +142,6 @@
             padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
-        }
-        video {
-            width: 95%;
-            height: auto;
-            border-radius: 5px;
-
-        }
-        .video-container {
-            position: relative;
-            top: 10px;
-            right: 0px;
-            /* left: 30px; */
-        }
-        .logout-btn {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background-color: #6c757d;
         }
     </style>
 </head>
@@ -137,59 +163,57 @@
     </div>
     <div class="right-half"> 
         <div class="video-container">
-            <video id="bgvideo" autoplay muted loop playsinline>
-                <source src="one-more-day.mp4">
-            </video>
+            <img id="sideImage" src="static/images/sisyphus.jpg" alt="Visual" style="max-width: 95%; border-radius: 5px;">
         </div>
-        <div class="audio-control" id="audioToggle">
-            unmute audio
-        </div>
+        <audio id="bgAudio" src="static/audio/sisyphus.mp4" autoplay loop></audio>
     </div>
     <button class="logout-btn">
         logout
     </button>
     <script>
-        const video = document.getElementById('bgvideo');
-        const audioToggle = document.getElementById('audioToggle');
-
-        audioToggle.addEventListener('click', function() {
-            if (video.muted) {
-                video.muted = false;
-                this.textContent = 'mute audio';
-            } else {
-                video.muted = true;
-                this.textContent = 'unmute audio';
-            }
-        });
-
-
         let goals = [];
-        
-        function addGoal(goalText) {
-            if (goalText.trim()) {
-                const goal = {
-                    text: goalText.trim(),
-                    date: new Date().toLocaleString()
-                };
-                goals.push(goal);
-                updateGoalsList();
-            }
-        }
-        
-        function updateGoalsList() {
-            const container = document.getElementById('goalsContainer');
-            container.innerHTML = goals.map(goal => `
-            <div class="goal-container">
-                <button>
-                    one more
-                </button>
+
+function addGoal(goalText) {
+    if (goalText.trim()) {
+        goals.push({
+            text: goalText.trim(),
+            progress: 0
+        });
+        updateGoalsList();
+    }
+}
+
+function incrementProgress(index) {
+    goals[index].progress = Math.min(goals[index].progress + 25, 100);
+    
+    if (goals[index].progress === 100) {
+        setTimeout(() => {
+            goals[index].progress = 0;
+            updateGoalsList();
+        }, 1000);
+    }
+    
+    updateGoalsList();
+}
+
+function removeGoal(index) {
+    goals.splice(index, 1);
+    updateGoalsList();
+}
+
+function updateGoalsList() {
+    const container = document.getElementById('goalsContainer');
+    container.innerHTML = goals.map((goal, index) => `
+        <div class="goal-container ${goal.progress === 100 ? 'completed' : ''}">
+            <div class="progress-fill" style="width: ${goal.progress}%"></div>
+            <div class="goal-content">
+                <button onclick="incrementProgress(${index})">one more</button>
                 <div class="goal-text">${goal.text}</div>
-                <button>
-                    remove
-                </button>
+                <button onclick="removeGoal(${index})">remove</button>
             </div>
-            `).join('');
-        }
+        </div>
+    `).join('');
+}
     </script>
 </body>
 </html>
